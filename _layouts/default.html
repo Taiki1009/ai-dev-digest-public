@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>{{ page.title }}</title>
+<style>
+  :root { --bg: #fff; --fg: #1f2328; --muted: #59636e; --link: #0969da; --line: #d1d9e0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --link: #4493f8; --line: #3d444d; } }
+  body { background: var(--bg); color: var(--fg); font: 16px/1.75 -apple-system, "Hiragino Sans", sans-serif; margin: 0 auto; max-width: 760px; padding: 16px; }
+  a { color: var(--link); }
+  h1 { font-size: 1.4em; } h2 { font-size: 1.2em; border-bottom: 1px solid var(--line); padding-bottom: .2em; margin-top: 2em; } h3 { font-size: 1.05em; }
+  audio { width: 100%; margin: .4em 0; }
+  details { margin: .4em 0; } summary { cursor: pointer; color: var(--muted); }
+  code { font-size: .9em; } pre { overflow-x: auto; }
+  footer { color: var(--muted); font-size: .85em; border-top: 1px solid var(--line); margin-top: 3em; padding-top: 1em; }
+</style>
+</head>
+<body>
+<p><a href="./">← 公開中の号</a></p>
+{{ content }}
+<footer>公開期間は各号2日間です。<br>解説音声: Open JTalk ／ HTS Voice "Mei"（© Nagoya Institute of Technology, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>）</footer>
+</body>
+</html>
