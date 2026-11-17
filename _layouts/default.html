@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>{{ page.title }}</title>
+<style>
+  :root { --bg: #fff; --fg: #1f2328; --muted: #59636e; --link: #0969da; --line: #d1d9e0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --link: #4493f8; --line: #3d444d; } }
+  body { background: var(--bg); color: var(--fg); font: 16px/1.75 -apple-system, "Hiragino Sans", sans-serif; margin: 0 auto; max-width: 760px; padding: 16px; }
+  a { color: var(--link); }
+  h1 { font-size: 1.4em; } h2 { font-size: 1.2em; border-bottom: 1px solid var(--line); padding-bottom: .2em; margin-top: 2em; } h3 { font-size: 1.05em; }
+  audio { width: 100%; margin: .4em 0; }
+  details { margin: .4em 0; } summary { cursor: pointer; color: var(--muted); }
+  code { font-size: .9em; } pre { overflow-x: auto; }
+  .stars a[data-n] { font-size: 1.7em; line-height: 1; padding: 0 .08em; color: var(--line); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+  .stars a[data-n].on { color: #e3b341; }
+  .stars .msg { font-size: .85em; color: var(--muted); margin-left: .5em; }
+  footer { color: var(--muted); font-size: .85em; border-top: 1px solid var(--line); margin-top: 3em; padding-top: 1em; }
+</style>
+</head>
+<body>
+<p><a href="./">← 公開中の号</a></p>
+{{ content }}
+<footer>公開期間は各号2日間です。<br>
+星をタップすると評価が保存されます（初回だけ <a href="#" id="rate-setup">GitHub トークンの登録</a> が必要。未登録のときは Issue の作成画面が開きます）。<br>解説音声: Open JTalk ／ HTS Voice "Mei"（© Nagoya Institute of Technology, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>）</footer>
+<script>
+(() => {
+  const REPO = "Taiki1009/ai-dev-digest";
+  const KEY = "digestToken";
+  const get = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const set = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+  const paint = (box, n) => box.querySelectorAll("a[data-n]").forEach((a) => a.classList.toggle("on", Number(a.dataset.n) <= n));
+
+  document.querySelectorAll(".stars").forEach((box) => {
+    const { id, title, url } = box.dataset;
+    const msg = box.querySelector(".msg");
+    let saved = Number(get("rate:" + id) || 0);
+    paint(box, saved);
+    box.querySelectorAll("a[data-n]").forEach((a) => a.addEventListener("click", async (ev) => {
+      const token = get(KEY);
+      if (!token) return;  // 未登録なら href の Issue 作成画面を開く
+      ev.preventDefault();
+      const n = Number(a.dataset.n);
+      paint(box, n);
+      msg.textContent = "保存中…";
+      const short = title.length <= 50 ? title : title.slice(0, 49) + "…";
+      const body = `記事: ${id}
+評価: ★${n}/5
+タイトル: ${title}
+URL: ${url}
+
+コメント（任意。この Issue にコメントしてください）:
+`;
+      try {
+        const r = await fetch(`https://api.github.com/repos/${REPO}/issues`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+          body: JSON.stringify({ title: `★${n} ${id} ${short}`, body, labels: ["feedback"] }),
+        });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const issue = await r.json();
+        saved = n;
+        set("rate:" + id, n);
+        msg.textContent = "保存しました ";
+        const c = document.createElement("a");
+        c.href = issue.html_url; c.target = "_blank"; c.rel = "noopener"; c.textContent = "コメントを書く";
+        msg.append(c);
+      } catch (e) {
+        paint(box, saved);
+        msg.textContent = `保存できませんでした（${e.message}）`;
+      }
+    }));
+  });
+
+  const setup = document.getElementById("rate-setup");
+  const label = () => { setup.textContent = get(KEY) ? "GitHub トークン（登録済み。タップで変更・削除）" : "GitHub トークンの登録"; };
+  setup.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    const v = prompt("Fine-grained トークン（ai-dev-digest のみ、Issues: Read and write）を貼り付けてください。空欄で OK を押すと削除します。", "");
+    if (v === null) return;
+    set(KEY, v.trim() || null);
+    label();
+  });
+  label();
+})();
+</script>
+</body>
+</html>
